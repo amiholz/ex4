@@ -314,5 +314,5 @@ if __name__ == '__main__':
 
     # Q1()
     # Q2()
-    # Q3()
-    print("Hello World!")
+    Q3()
+    # print("Hello World!")
