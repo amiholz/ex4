@@ -246,6 +246,10 @@ def spectral(X, k, similarity_param, similarity=gaussian_kernel):
     return kmeans(U, k, 10)
 
 def Q1():
+    """
+    K-means on synthetic data, that I've created.
+    :return: None
+    """
     cov = [[0.1,0],[0,0.11]]
     x1, y1 = np.random.multivariate_normal([0,0], cov, 500).T
     x2, y2 = np.random.multivariate_normal([5,0], cov, 500).T
@@ -257,15 +261,18 @@ def Q1():
     X = np.vstack((x,y)).T
     scores = []
     sils = []
-    K = list(range(2,10))
-    for k in K:
-        result = kmeans(X, k)
+    K = list(range(2,8))
+    plt.figure(1)
+    plt.suptitle("K-means++ on synthetic data", fontsize=20)
+    for k in range(len(K)):
+        result = kmeans(X, K[k])
         scores.append(result[2])
         sils.append(result[3])
-        plt.title("K-means++ on synthetic data with k="+str(k) , fontsize=15)
+        plt.subplot(230+k+1)
+        plt.title("k="+str(K[k]) , fontsize=15)
         plt.scatter(X[:, 0], X[:, 1], c=result[0], cmap="gist_rainbow")
-        plt.savefig("K-means synthetic data k="+str(k))
-        plt.show()
+    plt.savefig("K-means++ on synthetic data")
+    plt.show()
 
     # elbow method
     plt.figure()
@@ -282,8 +289,11 @@ def Q1():
     plt.show()
 
 def Q2():
-    pass
-    #TODO Biological Clustering
+    """
+    K-means++ on the given pickle data
+    :return: None
+    """
+
 
 def Q3(frac = 1):
     digits = load_digits()
@@ -308,11 +318,9 @@ def Q3(frac = 1):
     # plt.matshow(digits.images[4])
     # plt.show()
 
-
-
 if __name__ == '__main__':
 
+    apml_pic_example()
     # Q1()
     # Q2()
-    Q3()
-    # print("Hello World!")
+    # Q3()
