@@ -5,6 +5,7 @@ from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.datasets import load_digits
 from sklearn.manifold import TSNE
 import matplotlib.cm as cm
+from scipy.io import loadmat
 
 def circles_example():
     """
@@ -290,12 +291,148 @@ def Q1():
 
 def Q2():
     """
-    K-means++ on the given pickle data
+    K-means++ on the given apml pickle data
     :return: None
     """
+    with open('APML_pic.pickle', 'rb') as f:
+        apml = pickle.load(f)
+
+    scores = []
+    sils = []
+    K = list(range(4,12))
+    plt.figure(1)
+    plt.suptitle("K-means++ on APML text", fontsize=18)
+    for k in range(len(K)):
+        result = kmeans(apml, K[k])
+        scores.append(result[2])
+        sils.append(result[3])
+        plt.subplot(240+k+1)
+        plt.title("k="+str(K[k]) , fontsize=12)
+        plt.scatter(apml[:, 0], apml[:, 1], c=result[0], cmap="gist_rainbow")
+    plt.savefig("K-means++ on APML text")
+    plt.show()
+
+    # elbow method
+    plt.figure()
+    plt.plot(K, scores)
+    plt.title("Chossing k - Elbow Method - APML text", fontsize=15)
+    plt.savefig("Elbow method")
+    plt.show()
+
+    # Silhouette  method
+    plt.figure()
+    plt.plot(K, sils)
+    plt.title("Chossing k - Silhouette Method - APML text", fontsize=15)
+    plt.savefig("Silhouette method")
+    plt.show()
+
+def Q3():
+    """
+    K-means++ on the given circles pickle data
+    :return: None
+    """
+    t = np.arange(0, 2 * np.pi, 0.03)
+    length = np.shape(t)
+    length = length[0]
+    circle1 = np.array([np.cos(t) + 0.1 * np.random.randn(length),
+                         np.sin(t) + 0.1 * np.random.randn(length)])
+    circle2 = np.array([2 * np.cos(t) + 0.1 * np.random.randn(length),
+                         2 * np.sin(t) + 0.1 * np.random.randn(length)])
+    circle3 = np.array([3 * np.cos(t) + 0.1 * np.random.randn(length),
+                         3 * np.sin(t) + 0.1 * np.random.randn(length)])
+    circle4 = np.array([4 * np.cos(t) + 0.1 * np.random.randn(length),
+                         4 * np.sin(t) + 0.1 * np.random.randn(length)])
+    circles = np.concatenate((circle1, circle2, circle3, circle4), axis=1)
+    data = np.squeeze(np.asarray(circles.T))
+    scores = []
+    sils = []
+    K = list(range(3,7))
+    plt.figure(1)
+    plt.suptitle("K-means++ on circles", fontsize=20)
+    for k in range(len(K)):
+        result = kmeans(data, K[k])
+        scores.append(result[2])
+        sils.append(result[3])
+        plt.subplot(220+k+1)
+        plt.title("k="+str(K[k]) , fontsize=15)
+        plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
+    plt.savefig("K-means++ on circles")
+    plt.show()
+
+    # elbow method
+    plt.figure()
+    plt.plot(K, scores)
+    plt.title("Chossing k - Elbow Method - circles", fontsize=15)
+    plt.savefig("Elbow method")
+    plt.show()
+
+    # Silhouette  method
+    plt.figure()
+    plt.plot(K, sils)
+    plt.title("Chossing k - Silhouette Method - circles", fontsize=15)
+    plt.savefig("Silhouette method")
+    plt.show()
+
+def circles(data):
+    scores = []
+    sils = []
+    K = list(range(3,7))
+    plt.figure(1)
+    plt.suptitle("Spectral Clustering on circles", fontsize=20)
+    for k in range(len(K)):
+        result = spectral(data, K[k])
+        scores.append(result[2])
+        sils.append(result[3])
+        plt.subplot(220+k+1)
+        plt.title("k="+str(K[k]) , fontsize=15)
+        plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
+    plt.savefig("Spectral Clustering on circles")
+    plt.show()
+
+    # elbow method
+    plt.figure()
+    plt.plot(K, scores)
+    plt.title("Spectral Clustering Chossing k - Elbow Method - circles", fontsize=15)
+    plt.savefig("Spectral Clustering - circles - Elbow method")
+    plt.show()
+
+    # Silhouette  method
+    plt.figure()
+    plt.plot(K, sils)
+    plt.title("Spectral Clustering Chossing k - Silhouette Method - circles", fontsize=15)
+    plt.savefig("Silhouette method")
+    plt.show()
+
+def apml(data):
+
+def shalom(data):
 
 
-def Q3(frac = 1):
+def Q4():
+    """
+    Spectral Clustering on the given
+    :return:
+    """
+    shalom = loadmat("d3.mat")["d3"]
+    t = np.arange(0, 2 * np.pi, 0.03)
+    length = np.shape(t)
+    length = length[0]
+    circle1 = np.array([np.cos(t) + 0.1 * np.random.randn(length),
+                         np.sin(t) + 0.1 * np.random.randn(length)])
+    circle2 = np.array([2 * np.cos(t) + 0.1 * np.random.randn(length),
+                         2 * np.sin(t) + 0.1 * np.random.randn(length)])
+    circle3 = np.array([3 * np.cos(t) + 0.1 * np.random.randn(length),
+                         3 * np.sin(t) + 0.1 * np.random.randn(length)])
+    circle4 = np.array([4 * np.cos(t) + 0.1 * np.random.randn(length),
+                         4 * np.sin(t) + 0.1 * np.random.randn(length)])
+    circles = np.concatenate((circle1, circle2, circle3, circle4), axis=1)
+    data = np.squeeze(np.asarray(circles.T))
+    with open('APML_pic.pickle', 'rb') as f:
+        apml = pickle.load(f)
+
+
+
+def Q6(frac = 1):
     digits = load_digits()
     if frac!=1:
         SIZE = int(frac*digits.data.shape[0])
@@ -320,7 +457,10 @@ def Q3(frac = 1):
 
 if __name__ == '__main__':
 
-    apml_pic_example()
+    # apml_pic_example()
+    # circles_example()
     # Q1()
     # Q2()
-    # Q3()
+    Q3()
+    # Q4()
+    # Q6()
