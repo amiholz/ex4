@@ -4,10 +4,11 @@ import pickle
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.datasets import load_digits
 from sklearn.manifold import TSNE
+from sklearn.preprocessing import normalize
 import matplotlib.cm as cm
 from scipy.io import loadmat
 
-PER = 0.05
+PER = 0.06
 
 def circles_example():
     """
@@ -89,9 +90,13 @@ def microarray_exploration(data_path='microarray_data.pickle',
     plt.show()
 
     # look at the entire data set:
-    plt.figure()
+    plt.figure(1)
+    plt.subplot(121)
     plt.imshow(data, extent=[0, 1, 0, 1], cmap="hot", vmin=-3, vmax=3)
-    plt.colorbar()
+    # plt.colorbar()
+    plt.subplot(122)
+    plt.imshow(data, extent=[0, 1, 0, 1], cmap="hot", vmin=-3, vmax=3)
+    # plt.colorbar()
     plt.show()
 
 def euclid(X, Y):
@@ -114,7 +119,7 @@ def euclidean_centroid(X):
 def kmeans_pp_init(X, k, metric):
     """
     The initialization function of kmeans++, returning k centroids.
-    :param X: The data matrix.
+fon    :param X: The data matrix.
     :param k: The number of clusters.
     :param metric: a metric function like specified in the kmeans documentation.
     :return: kxD matrix with rows containing the centroids.
@@ -243,10 +248,10 @@ def spectral(X, k, similarity_param, similarity=gaussian_kernel):
     D = np.diag(np.power(np.sum(W, axis=1), -0.5))
     L = np.eye(D.shape[0])-D.dot(W).dot(D)
     w, v = np.linalg.eigh(L)
-    U = v[:,np.argsort(w)][:,:k]
-    # TODO normalize the matrix
-    updateU = U/U.sum(axis=1)[:,np.newaxis]
-    return kmeans(updateU, k, 10)
+    # diff = np.ediff1d(w)
+    # gap = np.argmax(diff)  -  case of using eigen gap
+    v = v[:,:k]
+    return kmeans(v, k, 5)
 
 def Q1_a():
     """
@@ -364,123 +369,226 @@ def Q1_c():
     # elbow method
     plt.figure()
     plt.plot(K, scores)
-    plt.title("Chossing k - Elbow Method - circles", fontsize=15)
-    plt.savefig("Elbow method")
+    plt.title("K-means++ Elbow Method - circles", fontsize=15)
+    plt.savefig("K-means++ Elbow Method - circles")
     plt.show()
 
     # Silhouette  method
     plt.figure()
     plt.plot(K, sils)
-    plt.title("Chossing k - Silhouette Method - circles", fontsize=15)
-    plt.savefig("Silhouette method")
+    plt.title("K-means++ Silhouette Method - circles", fontsize=15)
+    plt.savefig("K-means++ Silhouette Method - circles")
     plt.show()
 
 def Q1():
     Q1_a()
+    print("Finish Q1a")
     Q1_b()
+    print("Finish Q1b")
     Q1_c()
+    print("Finish Q1c")
 
-def choose_alpha(data):
+def choose_sigma(data):
     """
     :param data: The given data
-    :return: alpha for th gaussian kernel
+    :return: sigma for th gaussian kernel
     """
     distances = euclid(data, data)  # get distances of the data
-    hist = np.histogram(distances.ravel(), bins=100)    # get histogram of distances
+    hist = np.histogram(distances.ravel(), bins=500)    # get histogram of distances
     cum = np.cumsum(hist[0])    # get cumulative sum of the histogram
-    c= cum/cum[-1]              # normalize before taking the 0.05 percentile
-    index = np.argmax(c>0.05)   # get the index that represent the 0.05 percentile
-    return hist[1][index+1]     # get the distance assigned that index
+    c = cum/cum[-1]              # normalize before taking the 0.05 percentile
+    index = np.argmax(c>PER)   # get the index that represent the 0.05 percentile
+    return hist[1][index]     # get the distance assigned that index
 
 def Q2_shalom(data):
+    # ALPHA PART
     scores = []
     sils = []
-    alpha = choose_alpha(data)
-    K = list(range(3,11))
+    sigma = choose_sigma(data)
+    K = list(range(4,8))
     plt.figure(1)
-    plt.suptitle("Spectral Clustering on SHALOM text", fontsize=20)
+    plt.suptitle("Spectral Clustering on SHALOM text with heat kernel", fontsize=20)
     for k in range(len(K)):
-        result = spectral(data, K[k])
-        scores.append(result[2])
-        sils.append(result[3])
-        plt.subplot(240+k+1)
-        plt.title("k="+str(K[k]) , fontsize=15)
-        plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
-    plt.savefig("Spectral Clustering on SHALOM text")
-    plt.show()
-
-    # elbow method
-    plt.figure()
-    plt.plot(K, scores)
-    plt.title("Spectral Clustering - Elbow Method - SHALOM text", fontsize=15)
-    plt.savefig("Spectral Clustering - Elbow Method - SHALOM text")
-    plt.show()
-
-    # Silhouette  method
-    plt.figure()
-    plt.plot(K, sils)
-    plt.title("Spectral Clustering - Silhouette Method - SHALOM text", fontsize=15)
-    plt.savefig("Spectral Clustering - Silhouette Method - SHALOM text")
-    plt.show()
-
-def Q2_circles(data):
-    scores = []
-    sils = []
-    K = list(range(3,7))
-    plt.figure(1)
-    plt.suptitle("Spectral Clustering on circles", fontsize=20)
-    for k in range(len(K)):
-        result = spectral(data, K[k])
+        result = spectral(data, K[k], sigma)
         scores.append(result[2])
         sils.append(result[3])
         plt.subplot(220+k+1)
         plt.title("k="+str(K[k]) , fontsize=15)
         plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
-    plt.savefig("Spectral Clustering on circles")
+    plt.savefig("Spectral Clustering on SHALOM text with heat kernel")
     plt.show()
 
     # elbow method
     plt.figure()
     plt.plot(K, scores)
-    plt.title("Spectral Clustering - Elbow Method - circles", fontsize=15)
-    plt.savefig("Spectral Clustering - Elbow Method - circles")
+    plt.title("Spectral Clustering with heat kernel - Elbow Method - SHALOM text", fontsize=15)
+    plt.savefig("Spectral Clustering with heat kernel - Elbow Method - SHALOM text")
     plt.show()
 
     # Silhouette  method
     plt.figure()
     plt.plot(K, sils)
-    plt.title("Spectral Clustering - Silhouette Method - circles", fontsize=15)
-    plt.savefig("Spectral Clustering - Silhouette Method - circles")
+    plt.title("Spectral Clustering with heat kernel - Silhouette Method - SHALOM text", fontsize=15)
+    plt.savefig("Spectral Clustering with heat kernel - Silhouette Method - SHALOM text")
+    plt.show()
+
+    # NEIGHBORS PART
+    scores = []
+    sils = []
+    m = 5
+    K = list(range(4,8))
+    plt.figure(1)
+    plt.suptitle("Spectral Clustering on SHALOM text with MNN", fontsize=20)
+    for k in range(len(K)):
+        result = spectral(data, K[k], m, mnn)
+        scores.append(result[2])
+        sils.append(result[3])
+        plt.subplot(220+k+1)
+        plt.title("k="+str(K[k]) , fontsize=15)
+        plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
+    plt.savefig("Spectral Clustering on SHALOM text with MNN")
+    plt.show()
+
+    # elbow method
+    plt.figure()
+    plt.plot(K, scores)
+    plt.title("Spectral Clustering with MNN - Elbow Method - SHALOM text", fontsize=15)
+    plt.savefig("Spectral Clustering with MNN - Elbow Method - SHALOM text")
+    plt.show()
+
+    # Silhouette  method
+    plt.figure()
+    plt.plot(K, sils)
+    plt.title("Spectral Clustering with MNN - Silhouette Method - SHALOM text", fontsize=15)
+    plt.savefig("Spectral Clustering with MNN - Silhouette Method - SHALOM text")
+    plt.show()
+
+def Q2_circles(data):
+    # ALPHA PART
+    scores = []
+    sils = []
+    sigma = choose_sigma(data)
+    K = list(range(3,7))
+    plt.figure(1)
+    plt.suptitle("Spectral Clustering on circles with heat kernel", fontsize=20)
+    for k in range(len(K)):
+        result = spectral(data, K[k], sigma)
+        scores.append(result[2])
+        sils.append(result[3])
+        plt.subplot(220+k+1)
+        plt.title("k="+str(K[k]) , fontsize=15)
+        plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
+    plt.savefig("Spectral Clustering on circles with heat kernel")
+    plt.show()
+
+    # elbow method
+    plt.figure()
+    plt.plot(K, scores)
+    plt.title("Spectral Clustering with heat kernel - Elbow Method - circles", fontsize=15)
+    plt.savefig("Spectral Clustering with heat kernel - Elbow Method - circles")
+    plt.show()
+
+    # Silhouette  method
+    plt.figure()
+    plt.plot(K, sils)
+    plt.title("Spectral Clustering with heat kernel - Silhouette Method - circles", fontsize=15)
+    plt.savefig("Spectral Clustering with heat kernel - Silhouette Method - circles")
+    plt.show()
+
+
+    # NEIGHBORS PART
+    scores = []
+    sils = []
+    m = 5
+    K = list(range(3,7))
+    plt.figure(1)
+    plt.suptitle("Spectral Clustering on circles with MNN", fontsize=20)
+    for k in range(len(K)):
+        result = spectral(data, K[k], m, mnn)
+        scores.append(result[2])
+        sils.append(result[3])
+        plt.subplot(220+k+1)
+        plt.title("k="+str(K[k]) , fontsize=15)
+        plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
+    plt.savefig("Spectral Clustering on circles with MNN")
+    plt.show()
+
+    # elbow method
+    plt.figure()
+    plt.plot(K, scores)
+    plt.title("Spectral Clustering with MNN - Elbow Method - circles", fontsize=15)
+    plt.savefig("Spectral Clustering with MNN - Elbow Method - circles")
+    plt.show()
+
+    # Silhouette  method
+    plt.figure()
+    plt.plot(K, sils)
+    plt.title("Spectral Clustering with MNN - Silhouette Method - circles", fontsize=15)
+    plt.savefig("Spectral Clustering with MNN - Silhouette Method - circles")
     plt.show()
 
 def Q2_apml(data):
+    # ALPHA PART
     scores = []
     sils = []
+    sigma = choose_sigma(data)
     K = list(range(3,11))
     plt.figure(1)
-    plt.suptitle("Spectral Clustering on APML text", fontsize=20)
+    plt.suptitle("Spectral Clustering on APML text with heat kernel", fontsize=20)
     for k in range(len(K)):
-        result = spectral(data, K[k])
+        result = spectral(data, K[k], sigma)
         scores.append(result[2])
         sils.append(result[3])
         plt.subplot(240+k+1)
         plt.title("k="+str(K[k]) , fontsize=15)
         plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
-    plt.savefig("Spectral Clustering on APML text")
+    plt.savefig("Spectral Clustering on APML text with heat kernel")
     plt.show()
 
     # elbow method
     plt.figure()
     plt.plot(K, scores)
-    plt.title("Spectral Clustering - Elbow Method - APML text", fontsize=15)
-    plt.savefig("Spectral Clustering - Elbow Method - APML text")
+    plt.title("Spectral Clustering with heat kernel - Elbow Method - APML text", fontsize=15)
+    plt.savefig("Spectral Clustering with heat kernel - Elbow Method - APML text")
     plt.show()
 
     # Silhouette  method
     plt.figure()
     plt.plot(K, sils)
-    plt.title("Spectral Clustering - Silhouette Method - APML text", fontsize=15)
-    plt.savefig("Spectral Clustering - Silhouette Method - APML text")
+    plt.title("Spectral Clustering with heat kernel - Silhouette Method - APML text", fontsize=15)
+    plt.savefig("Spectral Clustering with heat kernel - Silhouette Method - APML text")
+    plt.show()
+
+
+    # NEIGHBORS PART
+    scores = []
+    sils = []
+    m = 7
+    K = list(range(3,11))
+    plt.figure(1)
+    plt.suptitle("Spectral Clustering on APML text with MNN", fontsize=20)
+    for k in range(len(K)):
+        result = spectral(data, K[k], m, mnn)
+        scores.append(result[2])
+        sils.append(result[3])
+        plt.subplot(240+k+1)
+        plt.title("k="+str(K[k]) , fontsize=15)
+        plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
+    plt.savefig("Spectral Clustering on APML text with MNN")
+    plt.show()
+
+    # elbow method
+    plt.figure()
+    plt.plot(K, scores)
+    plt.title("Spectral Clustering with MNN - Elbow Method - APML text", fontsize=15)
+    plt.savefig("Spectral Clustering with MNN - Elbow Method - APML text")
+    plt.show()
+
+    # Silhouette  method
+    plt.figure()
+    plt.plot(K, sils)
+    plt.title("Spectral Clustering with MNN - Silhouette Method - APML text", fontsize=15)
+    plt.savefig("Spectral Clustering with MNN - Silhouette Method - APML text")
     plt.show()
 
 def Q2():
@@ -501,16 +609,42 @@ def Q2():
     circle4 = np.array([4 * np.cos(t) + 0.1 * np.random.randn(length),
                          4 * np.sin(t) + 0.1 * np.random.randn(length)])
     circles = np.concatenate((circle1, circle2, circle3, circle4), axis=1)
-    data = np.squeeze(np.asarray(circles.T))
+    circles = np.squeeze(np.asarray(circles.T))
     with open('APML_pic.pickle', 'rb') as f:
         apml = pickle.load(f)
-    Q2_shalom(shalom)
-    Q2_circles(data)
-    Q2_apml(apml)
+    # Q2_shalom(shalom)
+    # Q2_circles(circles)
+    # Q2_apml(apml)
 
+def Q4():
+    with open('microarray_data.pickle', 'rb') as f:
+        data = pickle.load(f)
+    sigma = choose_sigma(data)
+    scores = []
+    sils = []
+    K = [100, 200, 300, 400]
+    plt.figure(1)
+    plt.suptitle("Spectral Clustering on microarray heat kernel", fontsize=20)
+    for k in range(len(K)):
+        result = spectral(data, K[k], sigma)
+        scores.append(result[2])
+        sils.append(result[3])
+        plt.subplot(140+k+1)
+        new_data = data[np.where(result[0]==0)[0],:]
+        for i in range(1,K[0]):
+            new_data = np.vstack((new_data, data[np.where(result[0]==i)[0],:]))
+        plt.title("k="+str(K[k]) , fontsize=15)
+        plt.imshow(data, extent=[0, 1, 0, 1], cmap="hot", vmin=-3, vmax=3)
+    plt.colorbar()
+    plt.savefig("Spectral Clustering on microarray heat kernel")
+    plt.show()
 
 
 def Q6(frac = 1):
+    """
+    :param frac: How much from the data we use
+    :return: None
+    """
     digits = load_digits()
     if frac!=1:
         SIZE = int(frac*digits.data.shape[0])
@@ -538,7 +672,10 @@ if __name__ == '__main__':
     # apml_pic_example()
     # circles_example()
     # Q1()
-    Q2()
-    # Q3()
-    # Q4()
+    # print("Finish Q1")
+    # Q2()
+    # print("Finish Q2")
+    # microarray_exploration()
+    Q4()
+    # print("Finish Q4")
     # Q6()
