@@ -246,7 +246,7 @@ def spectral(X, k, similarity_param, similarity=gaussian_kernel):
     # updateX = U/U.sum(axis=1)[:,np.newaxis]
     return kmeans(U, k, 10)
 
-def Q1():
+def Q1_a():
     """
     K-means on synthetic data, that I've created.
     :return: None
@@ -278,18 +278,18 @@ def Q1():
     # elbow method
     plt.figure()
     plt.plot(K, scores)
-    plt.title("Chossing k - Elbow Method - Synthetic Data", fontsize=15)
-    plt.savefig("Elbow method")
+    plt.title("K-means++ Elbow Method - Synthetic Data", fontsize=15)
+    plt.savefig("K-means++ Elbow Method - Synthetic Data")
     plt.show()
 
     # Silhouette  method
     plt.figure()
     plt.plot(K, sils)
-    plt.title("Chossing k - Silhouette Method - Synthetic Data", fontsize=15)
-    plt.savefig("Silhouette method")
+    plt.title("K-means++ Silhouette Method - Synthetic Data", fontsize=15)
+    plt.savefig("K-means++ Silhouette Method - Synthetic Data")
     plt.show()
 
-def Q2():
+def Q1_b():
     """
     K-means++ on the given apml pickle data
     :return: None
@@ -315,18 +315,18 @@ def Q2():
     # elbow method
     plt.figure()
     plt.plot(K, scores)
-    plt.title("Chossing k - Elbow Method - APML text", fontsize=15)
-    plt.savefig("Elbow method")
+    plt.title("K-means++ Elbow Method - APML text", fontsize=15)
+    plt.savefig("K-means++ Elbow Method - APML text")
     plt.show()
 
     # Silhouette  method
     plt.figure()
     plt.plot(K, sils)
-    plt.title("Chossing k - Silhouette Method - APML text", fontsize=15)
-    plt.savefig("Silhouette method")
+    plt.title("K-means++ Silhouette Method - APML text", fontsize=15)
+    plt.savefig("K-means++ Silhouette Method - APML text")
     plt.show()
 
-def Q3():
+def Q1_c():
     """
     K-means++ on the given circles pickle data
     :return: None
@@ -373,7 +373,12 @@ def Q3():
     plt.savefig("Silhouette method")
     plt.show()
 
-def circles(data):
+def Q1():
+    Q1_a()
+    Q1_b()
+    Q1_c()
+
+def Q2_circles(data):
     scores = []
     sils = []
     K = list(range(3,7))
@@ -392,23 +397,78 @@ def circles(data):
     # elbow method
     plt.figure()
     plt.plot(K, scores)
-    plt.title("Spectral Clustering Chossing k - Elbow Method - circles", fontsize=15)
-    plt.savefig("Spectral Clustering - circles - Elbow method")
+    plt.title("Spectral Clustering - Elbow Method - circles", fontsize=15)
+    plt.savefig("Spectral Clustering - Elbow Method - circles")
     plt.show()
 
     # Silhouette  method
     plt.figure()
     plt.plot(K, sils)
-    plt.title("Spectral Clustering Chossing k - Silhouette Method - circles", fontsize=15)
-    plt.savefig("Silhouette method")
+    plt.title("Spectral Clustering - Silhouette Method - circles", fontsize=15)
+    plt.savefig("Spectral Clustering - Silhouette Method - circles")
     plt.show()
 
-def apml(data):
+def Q2_apml(data):
+    scores = []
+    sils = []
+    K = list(range(3,11))
+    plt.figure(1)
+    plt.suptitle("Spectral Clustering on APML text", fontsize=20)
+    for k in range(len(K)):
+        result = spectral(data, K[k])
+        scores.append(result[2])
+        sils.append(result[3])
+        plt.subplot(240+k+1)
+        plt.title("k="+str(K[k]) , fontsize=15)
+        plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
+    plt.savefig("Spectral Clustering on APML text")
+    plt.show()
 
-def shalom(data):
+    # elbow method
+    plt.figure()
+    plt.plot(K, scores)
+    plt.title("Spectral Clustering - Elbow Method - APML text", fontsize=15)
+    plt.savefig("Spectral Clustering - Elbow Method - APML text")
+    plt.show()
 
+    # Silhouette  method
+    plt.figure()
+    plt.plot(K, sils)
+    plt.title("Spectral Clustering - Silhouette Method - APML text", fontsize=15)
+    plt.savefig("Spectral Clustering - Silhouette Method - APML text")
+    plt.show()
 
-def Q4():
+def Q2_shalom(data):
+    scores = []
+    sils = []
+    K = list(range(3,11))
+    plt.figure(1)
+    plt.suptitle("Spectral Clustering on SHALOM text", fontsize=20)
+    for k in range(len(K)):
+        result = spectral(data, K[k])
+        scores.append(result[2])
+        sils.append(result[3])
+        plt.subplot(240+k+1)
+        plt.title("k="+str(K[k]) , fontsize=15)
+        plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
+    plt.savefig("Spectral Clustering on SHALOM text")
+    plt.show()
+
+    # elbow method
+    plt.figure()
+    plt.plot(K, scores)
+    plt.title("Spectral Clustering - Elbow Method - SHALOM text", fontsize=15)
+    plt.savefig("Spectral Clustering - Elbow Method - SHALOM text")
+    plt.show()
+
+    # Silhouette  method
+    plt.figure()
+    plt.plot(K, sils)
+    plt.title("Spectral Clustering - Silhouette Method - SHALOM text", fontsize=15)
+    plt.savefig("Spectral Clustering - Silhouette Method - SHALOM text")
+    plt.show()
+
+def Q2():
     """
     Spectral Clustering on the given
     :return:
@@ -429,6 +489,9 @@ def Q4():
     data = np.squeeze(np.asarray(circles.T))
     with open('APML_pic.pickle', 'rb') as f:
         apml = pickle.load(f)
+    Q2_shalom(shalom)
+    Q2_circles(data)
+    Q2_apml(apml)
 
 
 
