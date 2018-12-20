@@ -7,6 +7,8 @@ from sklearn.manifold import TSNE
 import matplotlib.cm as cm
 from scipy.io import loadmat
 
+PER = 0.05
+
 def circles_example():
     """
     an example function for generating and plotting synthetic data.
@@ -241,10 +243,10 @@ def spectral(X, k, similarity_param, similarity=gaussian_kernel):
     D = np.diag(np.power(np.sum(W, axis=1), -0.5))
     L = np.eye(D.shape[0])-D.dot(W).dot(D)
     w, v = np.linalg.eigh(L)
-    # TODO normalize the matrix
     U = v[:,np.argsort(w)][:,:k]
-    # updateX = U/U.sum(axis=1)[:,np.newaxis]
-    return kmeans(U, k, 10)
+    # TODO normalize the matrix
+    updateU = U/U.sum(axis=1)[:,np.newaxis]
+    return kmeans(updateU, k, 10)
 
 def Q1_a():
     """
@@ -378,6 +380,49 @@ def Q1():
     Q1_b()
     Q1_c()
 
+def choose_alpha(data):
+    """
+    :param data: The given data
+    :return: alpha for th gaussian kernel
+    """
+    distances = euclid(data, data)  # get distances of the data
+    hist = np.histogram(distances.ravel(), bins=100)    # get histogram of distances
+    cum = np.cumsum(hist[0])    # get cumulative sum of the histogram
+    c= cum/cum[-1]              # normalize before taking the 0.05 percentile
+    index = np.argmax(c>0.05)   # get the index that represent the 0.05 percentile
+    return hist[1][index+1]     # get the distance assigned that index
+
+def Q2_shalom(data):
+    scores = []
+    sils = []
+    alpha = choose_alpha(data)
+    K = list(range(3,11))
+    plt.figure(1)
+    plt.suptitle("Spectral Clustering on SHALOM text", fontsize=20)
+    for k in range(len(K)):
+        result = spectral(data, K[k])
+        scores.append(result[2])
+        sils.append(result[3])
+        plt.subplot(240+k+1)
+        plt.title("k="+str(K[k]) , fontsize=15)
+        plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
+    plt.savefig("Spectral Clustering on SHALOM text")
+    plt.show()
+
+    # elbow method
+    plt.figure()
+    plt.plot(K, scores)
+    plt.title("Spectral Clustering - Elbow Method - SHALOM text", fontsize=15)
+    plt.savefig("Spectral Clustering - Elbow Method - SHALOM text")
+    plt.show()
+
+    # Silhouette  method
+    plt.figure()
+    plt.plot(K, sils)
+    plt.title("Spectral Clustering - Silhouette Method - SHALOM text", fontsize=15)
+    plt.savefig("Spectral Clustering - Silhouette Method - SHALOM text")
+    plt.show()
+
 def Q2_circles(data):
     scores = []
     sils = []
@@ -438,36 +483,6 @@ def Q2_apml(data):
     plt.savefig("Spectral Clustering - Silhouette Method - APML text")
     plt.show()
 
-def Q2_shalom(data):
-    scores = []
-    sils = []
-    K = list(range(3,11))
-    plt.figure(1)
-    plt.suptitle("Spectral Clustering on SHALOM text", fontsize=20)
-    for k in range(len(K)):
-        result = spectral(data, K[k])
-        scores.append(result[2])
-        sils.append(result[3])
-        plt.subplot(240+k+1)
-        plt.title("k="+str(K[k]) , fontsize=15)
-        plt.scatter(data[:, 0], data[:, 1], c=result[0], cmap="gist_rainbow")
-    plt.savefig("Spectral Clustering on SHALOM text")
-    plt.show()
-
-    # elbow method
-    plt.figure()
-    plt.plot(K, scores)
-    plt.title("Spectral Clustering - Elbow Method - SHALOM text", fontsize=15)
-    plt.savefig("Spectral Clustering - Elbow Method - SHALOM text")
-    plt.show()
-
-    # Silhouette  method
-    plt.figure()
-    plt.plot(K, sils)
-    plt.title("Spectral Clustering - Silhouette Method - SHALOM text", fontsize=15)
-    plt.savefig("Spectral Clustering - Silhouette Method - SHALOM text")
-    plt.show()
-
 def Q2():
     """
     Spectral Clustering on the given
@@ -523,7 +538,7 @@ if __name__ == '__main__':
     # apml_pic_example()
     # circles_example()
     # Q1()
-    # Q2()
-    Q3()
+    Q2()
+    # Q3()
     # Q4()
     # Q6()
